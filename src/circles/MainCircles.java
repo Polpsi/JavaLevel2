@@ -2,6 +2,9 @@ package circles;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
 
 public class MainCircles extends JFrame {
     private static final int POS_X = 400;
@@ -25,7 +28,17 @@ public class MainCircles extends JFrame {
         setBounds(POS_X, POS_Y, WINDOW_WIDTH, WINDOW_HEIGHT);
         setTitle("Circles");
         initApplication();
-
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
+                if (e.getButton()==MouseEvent.BUTTON1){
+                    addBall();
+                } else if (e.getButton()==MouseEvent.BUTTON3) {
+                    removeFirstBall();
+                }
+            }
+        });
         MainCanvas canvas = new MainCanvas(this);
         add(canvas);
         setVisible(true);
@@ -37,8 +50,22 @@ public class MainCircles extends JFrame {
         }
     }
 
+    private void addBall(){
+        Sprite[] tmpSprites= Arrays.copyOf(sprites,sprites.length+1);
+        tmpSprites[tmpSprites.length-1]=new Ball();
+        sprites = Arrays.copyOf(tmpSprites,tmpSprites.length);
+    }
+
+    private void removeFirstBall(){
+        if (sprites.length>0){
+            Sprite[] tmpSprites = Arrays.copyOfRange(sprites, 1, sprites.length);
+            sprites = Arrays.copyOf(tmpSprites, tmpSprites.length);
+        }
+    }
+
     public void onCanvasRepainted(MainCanvas canvas, Graphics g, float deltaTime) {
         update(canvas, deltaTime);
+        Background.changeColor(canvas,deltaTime);
         render(canvas, g);
     }
 
@@ -53,4 +80,5 @@ public class MainCircles extends JFrame {
             sprites[i].render(canvas, g);
         }
     }
+
 }
