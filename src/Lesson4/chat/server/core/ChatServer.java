@@ -10,4 +10,5 @@ public class ChatServer {
         System.out.println("Server stopped");
     }
 
+    //Здесь, в методе обрабатывающем получение-передачу сообщений - писать в серверный history.log историю сообщений.
 }

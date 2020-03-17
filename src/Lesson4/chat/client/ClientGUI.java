@@ -2,9 +2,9 @@ package Lesson4.chat.client;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
+import java.awt.event.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler {
 
@@ -16,7 +16,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     private final JTextField tfIPAddress = new JTextField("127.0.0.1");
     private final JTextField tfPort = new JTextField("8189");
     private final JCheckBox cbAlwaysOnTop = new JCheckBox("Always on top");
-    private final JTextField tfLogin = new JTextField("ivan");
+    private final JTextField tfLogin = new JTextField("SS");
     private final JPasswordField tfPassword = new JPasswordField("123");
     private final JButton btnLogin = new JButton("Login");
 
@@ -37,6 +37,25 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     }
 
     private ClientGUI() {
+
+        //В логах клиента я бы сделал два файла:
+        // history.log для записи истории сообщений и
+        // error.log для ошибок.
+        //при инициализации и закрытии пишем в history.log
+
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                //Запись в history.log (дата, время, старт клиента)
+                System.out.println(new Date().toString() + " ClientGUI started");
+            }
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                //Запись в history.log (дата, время, закрытие клиента)
+                System.out.println(new Date().toString() + " ClientGUI closed");
+            }
+        });
         Thread.setDefaultUncaughtExceptionHandler(this);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -50,7 +69,8 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         JScrollPane scrollUsers = new JScrollPane(userList);
         scrollUsers.setPreferredSize(new Dimension(100, 0));
         cbAlwaysOnTop.addActionListener(this);
-
+        tfMessage.addActionListener(this);
+        btnSend.addActionListener(this);
 
         panelTop.add(tfIPAddress);
         panelTop.add(tfPort);
@@ -75,8 +95,9 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         Object src = e.getSource();
         if (src == cbAlwaysOnTop) {
             setAlwaysOnTop(cbAlwaysOnTop.isSelected());
-        }
-        else
+        } else if(src==btnSend || src == tfMessage) {
+            sendUserMessage();
+        } else
             throw new RuntimeException("Unknown source: " + src);
     }
 
@@ -89,6 +110,25 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
                 e.getClass().getCanonicalName() + ": " +
                 e.getMessage() + "\n\t" + ste[0];
         JOptionPane.showMessageDialog(null, msg, "Exception", JOptionPane.ERROR_MESSAGE);
+
+        // В этом месте записать в файл error.log дату, время и msg
+        // В файл history.log записать "Exception " + e.getMessage +" (error.log: дата, время)
+
         System.exit(1);
+    }
+
+    private void sendUserMessage() {
+        if (tfMessage.getText()!=null) {
+            String str= new SimpleDateFormat("dd.MM.YY HH.mm.ss ").format(new Date());
+            str += tfLogin.getText() + ": " + tfMessage.getText()+"\n";
+            log.append(str);
+
+            //После "отправки" сообщения на сервер добавим строку в файл history.log
+            System.out.print(str);
+
+            // подготовим tfMessage к приему нового сообщения
+            tfMessage.setText("");
+            tfMessage.grabFocus();
+        }
     }
 }

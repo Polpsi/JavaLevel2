@@ -28,6 +28,11 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
     }
 
     private ServerGUI() {
+
+        //В логах сервера я бы тоже сделал два файла:
+        // history.log для записи истории сообщений и
+        // server.log для остального.
+
         Thread.setDefaultUncaughtExceptionHandler(this);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setBounds(POS_X, POS_Y, WIDTH, HEIGHT);
@@ -47,10 +52,15 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
         if (src == btnStart)
+            // В server.log пишем "Дата, время - Запуск сервера"
             chatServer.start(8189);
+            // Если все без ошибок, то в server.log пишем "Дата, время - Сервер запущен"
         else if (src == btnStop)
-//            chatServer.stop();
-            throw new RuntimeException("Hello from EDT");
+            // В server.log пишем "Дата, время - Остановка сервера"
+            chatServer.stop();
+            // Если все без ошибок, то в server.log пишем "Дата, время - Сервер остановлен"
+
+            //throw new RuntimeException("Hello from EDT");
         else
             throw new RuntimeException("Unknown source: " + src);
     }
@@ -64,6 +74,9 @@ public class ServerGUI extends JFrame implements ActionListener, Thread.Uncaught
                 e.getClass().getCanonicalName() + ": " +
                 e.getMessage() + "\n\t" + ste[0];
         JOptionPane.showMessageDialog(null, msg, "Exception", JOptionPane.ERROR_MESSAGE);
+
+        //Здесь в server.log записывать пришедшее исключение: дата, время, msg
+
         System.exit(1);
     }
 }
