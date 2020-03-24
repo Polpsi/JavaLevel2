@@ -7,10 +7,12 @@ import ru.gb.jt.network.SocketThreadListener;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Vector;
 
 public class ChatServer implements ServerSocketThreadListener, SocketThreadListener {
 
     ServerSocketThread server;
+    private Vector allClients = new Vector();
 
     public void start(int port) {
         if (server == null || !server.isAlive()) {
@@ -36,7 +38,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
 
     /**
      * Server Socket Thread methods
-     * */
+     */
 
     @Override
     public void onServerStart(ServerSocketThread thread) {
@@ -54,13 +56,14 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     }
 
     @Override
-    public void onServerTimeout(ServerSocketThread thread, ServerSocket server) { }
+    public void onServerTimeout(ServerSocketThread thread, ServerSocket server) {
+    }
 
     @Override
     public void onSocketAccepted(ServerSocketThread thread, ServerSocket server, Socket socket) {
         putLog("Client connected");
         String name = "Socket Thread " + socket.getInetAddress() + ":" + socket.getPort();
-        new SocketThread(this, name, socket);
+        allClients.addElement(new SocketThread(this, name, socket));
     }
 
     @Override
@@ -70,7 +73,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
 
     /**
      * Socket Thread methods
-     * */
+     */
 
     @Override
     public void onSocketStart(SocketThread thread, Socket socket) {
@@ -80,6 +83,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     @Override
     public void onSocketStop(SocketThread thread) {
         putLog("Client disconnected");
+        thread.close();
     }
 
     @Override
@@ -89,7 +93,16 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
 
     @Override
     public void onReceiveString(SocketThread thread, Socket socket, String msg) {
-        thread.sendMessage("Echo: " + msg);
+        if (msg.equals("1q1q1q1q")) {
+            this.onSocketStop(thread);
+        } else {
+            //thread.sendMessage("Echo: " + msg);
+            //по умолчанию отправляем всем в чат, пока нет приватных бесед.
+            for (int i = 0; i < allClients.size(); i++) {
+                SocketThread client = (SocketThread) allClients.get(i);
+                client.sendMessage(msg);
+            }
+        }
     }
 
     @Override

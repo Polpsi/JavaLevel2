@@ -10,4 +10,5 @@ public interface SocketThreadListener {
     void onReceiveString(SocketThread thread, Socket socket, String msg);
 
     void onSocketException(SocketThread thread, Exception exception);
+
 }

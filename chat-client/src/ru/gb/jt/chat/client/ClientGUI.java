@@ -59,6 +59,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         btnSend.addActionListener(this);
         tfMessage.addActionListener(this);
         btnLogin.addActionListener(this);
+        btnDisconnect.addActionListener(this);
 
         panelTop.add(tfIPAddress);
         panelTop.add(tfPort);
@@ -69,6 +70,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         panelBottom.add(btnDisconnect, BorderLayout.WEST);
         panelBottom.add(tfMessage, BorderLayout.CENTER);
         panelBottom.add(btnSend, BorderLayout.EAST);
+        panelBottom.setVisible(false);
 
         add(scrollLog, BorderLayout.CENTER);
         add(scrollUsers, BorderLayout.EAST);
@@ -87,6 +89,8 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
             sendMessage();
         } else if (src == btnLogin) {
             connect();
+        } else if (src == btnDisconnect) {
+            disconnect();
         }
         else
             throw new RuntimeException("Unknown source: " + src);
@@ -101,9 +105,19 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         }
     }
 
+    private void disconnect() {
+        //TODO Разобраться, как закрывать без исключения.
+        sendMessage("1q1q1q1q");
+        this.onSocketStop(socketThread);
+    }
+
+    private void sendMessage(String msg) {
+        socketThread.sendMessage(msg);
+    }
+
     private void sendMessage() {
-        String msg = tfMessage.getText();
-        String username = tfLogin.getText();
+        String msg = tfLogin.getText()+": "+tfMessage.getText();
+        //String username = tfLogin.getText();
         if ("".equals(msg)) return;
         tfMessage.setText(null);
         tfMessage.grabFocus();
@@ -159,11 +173,16 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     @Override
     public void onSocketStart(SocketThread thread, Socket socket) {
         putLog("Start");
+        panelTop.setVisible(false);
+        panelBottom.setVisible(true);
     }
 
     @Override
     public void onSocketStop(SocketThread thread) {
         putLog("Stop");
+        panelTop.setVisible(true);
+        panelBottom.setVisible(false);
+        thread.close();
     }
 
     @Override
