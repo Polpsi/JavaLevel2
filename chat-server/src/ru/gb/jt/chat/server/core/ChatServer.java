@@ -15,6 +15,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     ServerSocketThread server;
     ChatServerListener listener;
     private Vector<SocketThread> clients = new Vector<>();
+    private long timeoutAuth=12000;
 
     public ChatServer(ChatServerListener listener) {
         this.listener = listener;
@@ -71,7 +72,8 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     public void onSocketAccepted(ServerSocketThread thread, ServerSocket server, Socket socket) {
         putLog("Client connected");
         String name = "Socket Thread " + socket.getInetAddress() + ":" + socket.getPort();
-        new ClientThread(this, name, socket);
+        ClientThread client = new ClientThread(this, name, socket);
+        startTimer(client,timeoutAuth);
     }
 
     @Override
@@ -186,6 +188,24 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
                 return client;
         }
         return null;
+    }
+
+    private void startTimer(ClientThread client,long timeout) {
+        Thread thread = new Thread(()-> {
+            long sessionStartTime = client.getSessionStartTime();
+            while (System.currentTimeMillis() - sessionStartTime < timeout) {
+                if (client.isAuthorized()) {
+                    return;
+                }
+            }
+            client.close();
+        });
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        };
     }
 
 }

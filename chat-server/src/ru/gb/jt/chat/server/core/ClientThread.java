@@ -10,9 +10,11 @@ public class ClientThread extends SocketThread {
     private String nickname;
     private boolean isAuthorized;
     private boolean isReconnected;
+    private long sessionStartTime;
 
     public ClientThread(SocketThreadListener listener, String name, Socket socket) {
         super(listener, name, socket);
+        this.sessionStartTime =System.currentTimeMillis();
     }
 
     public String getNickname() {
@@ -26,6 +28,8 @@ public class ClientThread extends SocketThread {
     public boolean isReconnected() {
         return isReconnected;
     }
+
+    public long getSessionStartTime(){return sessionStartTime;}
 
     void reconnect() {
         isReconnected = true;
@@ -47,5 +51,6 @@ public class ClientThread extends SocketThread {
         sendMessage(Library.getMsgFormatError(msg));
         close();
     }
+
 
 }
